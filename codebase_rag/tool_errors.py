@@ -48,6 +48,7 @@ COMMAND_INVALID_SYNTAX = "Invalid command syntax: {segment}"
 # (H) Code retrieval errors
 CODE_ENTITY_NOT_FOUND = "Entity not found in graph."
 CODE_MISSING_LOCATION = "Graph entry is missing location data."
+CODE_PROJECT_NOT_FOUND = "Project path not found for {fqn}: {error}"
 
 # (H) File writer errors
 FILE_WRITER_SECURITY = (

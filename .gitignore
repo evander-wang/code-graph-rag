@@ -22,3 +22,6 @@ PROJECT.md
 .envrc
 .DS_Store
 .pypi_cache.json
+*.md
+*.drawio
+test*.py

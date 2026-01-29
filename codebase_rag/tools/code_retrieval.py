@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from loguru import logger
 from pydantic_ai import Tool
@@ -13,14 +14,55 @@ from ..schemas import CodeSnippet
 from ..services import QueryProtocol
 from . import tool_descriptions as td
 
+if TYPE_CHECKING:
+    from ..project_path_resolver import ProjectPathResolver
+
 
 class CodeRetriever:
-    def __init__(self, project_root: str, ingestor: QueryProtocol):
-        self.project_root = Path(project_root).resolve()
+    def __init__(
+        self,
+        project_root: str | None = None,
+        ingestor: QueryProtocol | None = None,
+        path_resolver: ProjectPathResolver | None = None,
+    ):
+        """Initialize CodeRetriever
+
+        Args:
+            project_root: Project root path (backward compatibility parameter)
+            ingestor: Query service instance
+            path_resolver: Project path resolver (preferred)
+        """
         self.ingestor = ingestor
-        logger.info(ls.CODE_RETRIEVER_INIT.format(root=self.project_root))
+
+        # Prefer path_resolver, otherwise create single-project resolver
+        if path_resolver:
+            self.path_resolver = path_resolver
+            logger.info(
+                ls.CODE_RETRIEVER_INIT.format(
+                    root=f"multi-project resolver with {len(path_resolver.list_projects())} projects"
+                )
+            )
+        else:
+            # Backward compatibility: create single-project resolver
+            from ..project_path_resolver import ProjectPathResolver
+
+            default_root = project_root or "."
+            self.path_resolver = ProjectPathResolver(
+                {Path(default_root).name: default_root}
+            )
+            logger.info(
+                ls.CODE_RETRIEVER_INIT.format(root=Path(default_root).resolve())
+            )
 
     async def find_code_snippet(self, qualified_name: str) -> CodeSnippet:
+        """Find and extract code snippet
+
+        Args:
+            qualified_name: Fully qualified name of the function
+
+        Returns:
+            CodeSnippet object containing code snippet and metadata
+        """
         logger.info(ls.CODE_RETRIEVER_SEARCH.format(name=qualified_name))
 
         params = {"qn": qualified_name}
@@ -54,7 +96,14 @@ class CodeRetriever:
                     error_message=te.CODE_MISSING_LOCATION,
                 )
 
-            full_path = self.project_root / file_path_str
+            # Key modification: use path_resolver to dynamically resolve project path
+            project_root = self.path_resolver.resolve_path_from_fqn(qualified_name)
+            full_path = project_root / file_path_str
+
+            logger.debug(
+                f"[CodeRetriever] Resolved path for {qualified_name}: {full_path}"
+            )
+
             with full_path.open("r", encoding=ENCODING_UTF8) as f:
                 all_lines = f.readlines()
 
@@ -68,6 +117,21 @@ class CodeRetriever:
                 line_start=start_line,
                 line_end=end_line,
                 docstring=res.get("docstring"),
+            )
+        except KeyError as e:
+            # Project path not found
+            error_msg = te.CODE_PROJECT_NOT_FOUND.format(
+                fqn=qualified_name, error=str(e)
+            )
+            logger.error(ls.CODE_RETRIEVER_ERROR.format(error=error_msg))
+            return CodeSnippet(
+                qualified_name=qualified_name,
+                source_code="",
+                file_path="",
+                line_start=0,
+                line_end=0,
+                found=False,
+                error_message=error_msg,
             )
         except Exception as e:
             logger.exception(ls.CODE_RETRIEVER_ERROR.format(error=e))

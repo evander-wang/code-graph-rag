@@ -367,8 +367,11 @@ class GraphUpdater:
             from .vector_store import store_embedding
 
             logger.info(ls.PASS_4_EMBEDDINGS)
+            logger.info(f"Querying embeddings for project: {self.project_name}")
 
-            results = self.ingestor.fetch_all(cs.CYPHER_QUERY_EMBEDDINGS)
+            results = self.ingestor.fetch_all(
+                cs.CYPHER_QUERY_EMBEDDINGS, {"project_name": self.project_name}
+            )
 
             if not results:
                 logger.info(ls.NO_FUNCTIONS_FOR_EMBEDDING)

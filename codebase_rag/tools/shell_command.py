@@ -5,6 +5,7 @@ import re
 import shlex
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from loguru import logger
 from pydantic_ai import ApprovalRequired, RunContext, Tool
@@ -16,6 +17,9 @@ from ..config import settings
 from ..decorators import async_timing_decorator
 from ..schemas import ShellCommandResult
 from . import tool_descriptions as td
+
+if TYPE_CHECKING:
+    from ..project_path_resolver import ProjectPathResolver
 
 PIPELINE_PATTERNS_COMPILED = tuple(
     (re.compile(pattern, re.IGNORECASE), reason)
@@ -260,8 +264,31 @@ def _requires_approval(command: str) -> bool:
 
 
 class ShellCommander:
-    def __init__(self, project_root: str = ".", timeout: int = 30):
-        self.project_root = Path(project_root).resolve()
+    def __init__(
+        self,
+        project_root: str = ".",
+        timeout: int = 30,
+        path_resolver: ProjectPathResolver | None = None,
+    ):
+        """Initialize ShellCommander
+
+        Args:
+            project_root: Project root path (backward compatibility parameter)
+            timeout: Command timeout in seconds
+            path_resolver: Project path resolver (optional)
+        """
+        if path_resolver:
+            self.path_resolver = path_resolver
+            self.project_root = path_resolver.list_projects()[0]  # Use first project
+        else:
+            self.project_root = Path(project_root).resolve()
+            # Create single-project resolver for compatibility
+            from ..project_path_resolver import ProjectPathResolver
+
+            self.path_resolver = ProjectPathResolver(
+                {Path(project_root).name: project_root}
+            )
+
         self.timeout = timeout
         logger.info(ls.SHELL_COMMANDER_INIT.format(root=self.project_root))
 

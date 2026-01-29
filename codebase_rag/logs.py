@@ -619,3 +619,30 @@ EXCLUDE_INVALID_INPUT = "Invalid input: '{input}' (expected number)"
 MODEL_SWITCHED = "Model switched to: {model}"
 MODEL_SWITCH_FAILED = "Failed to switch model: {error}"
 MODEL_CURRENT = "Current model: {model}"
+
+# (H) Project path resolver logs
+RESOLVER_INIT_MAPPED = (
+    "ProjectPathResolver initialized with {count} mapped projects: {projects}"
+)
+RESOLVER_INIT_DEFAULT = (
+    "ProjectPathResolver initialized in single-project mode: {project} -> {path}"
+)
+RESOLVER_EXTRACT_SUCCESS = "Extracted project '{project}' from FQN: {fqn}"
+RESOLVER_EXTRACT_FALLBACK = (
+    "Could not extract project from FQN '{fqn}', using fallback: {fallback}"
+)
+RESOLVER_PROJECT_NOT_FOUND = (
+    "Project '{project}' not found. Available projects: {available}"
+)
+RESOLVER_PROJECT_ADDED = "Added project mapping: {name} -> {path}"
+RESOLVER_PROJECT_REMOVED = "Removed project mapping: {name}"
+
+# (I) YAML configuration logs
+YAML_LOADING = "Loading project mappings from YAML: {path}"
+YAML_LOADED = "Successfully loaded {count} projects from YAML"
+YAML_PARSE_ERROR = "YAML file parsing failed {path}: {error}"
+YAML_INVALID_FORMAT = "Invalid YAML format {path}: {error}"
+YAML_MISSING_DEP = "PyYAML not installed, falling back to ENV configuration"
+YAML_PATH_NOT_EXISTS = "Project path does not exist: {name} -> {path}"
+YAML_RICH_ALIAS = "Project '{name}' has aliases: {aliases}"
+YAML_RICH_DESCRIPTION = "Project '{name}' description: {description}"

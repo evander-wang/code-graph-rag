@@ -1,0 +1,33 @@
+# Codebase RAG project configuration example
+# Copy this file to .cgr_projects.yaml and customize
+
+# Simple format (recommended for most cases)
+projects:
+  user.profile.gateway: /path/to/user.profile.gateway
+  user.profile.logic: /path/to/user.profile.logic
+
+
+# Rich format (with metadata) - uncomment to use
+# version: "1.0"
+# projects:
+#   - name: user.profile.gateway
+#     path: /path/to/user-profile-gateway
+#     aliases:
+#       - gateway
+#       - gw
+#     description: "User profile gateway service"
+#     metadata:
+#       language: go
+#       version: "1.2.3"
+#       tags:
+#         - microservice
+#         - api
+#
+#   - name: user.profile.logic
+#     path: /path/to/user-profile-logic
+#     aliases:
+#       - logic
+#     description: "Business logic layer"
+#     metadata:
+#       language: python
+#       version: "1.2.3"

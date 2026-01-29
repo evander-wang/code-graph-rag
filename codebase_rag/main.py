@@ -30,6 +30,7 @@ from . import exceptions as ex
 from . import logs as ls
 from .config import ModelConfig, load_cgrignore_patterns, settings
 from .models import AppContext
+from .project_path_resolver import ProjectPathResolver
 from .prompts import OPTIMIZATION_PROMPT, OPTIMIZATION_PROMPT_WITH_REFERENCE
 from .providers.base import get_provider_from_config
 from .services import QueryProtocol
@@ -955,6 +956,26 @@ def _validate_provider_config(role: cs.ModelRole, config: ModelConfig) -> None:
         raise ValueError(ex.CONFIG.format(role=role.value.title(), error=e)) from e
 
 
+def _initialize_path_resolver() -> ProjectPathResolver:
+    """From the configuration initialization project path parser
+
+    Returns:
+        ProjectPathResolver
+    """
+    mappings = settings.get_project_mappings()
+    resolver = ProjectPathResolver(mappings)
+
+    if len(mappings) > 1:
+        logger.info(f"Multi-project mode enabled: {len(mappings)} projects registered")
+        for name, path in mappings.items():
+            logger.info(f"  - {name}: {path}")
+    else:
+        single_project = list(mappings.keys())[0]
+        logger.info(f"Single-project mode: {single_project}")
+
+    return resolver
+
+
 def _initialize_services_and_agent(
     repo_path: str, ingestor: QueryProtocol
 ) -> tuple[Agent[None, str | DeferredToolRequests], ConfirmationToolNames]:
@@ -963,13 +984,19 @@ def _initialize_services_and_agent(
     )
     _validate_provider_config(cs.ModelRole.CYPHER, settings.active_cypher_config)
 
+    path_resolver = _initialize_path_resolver()
+
     cypher_generator = CypherGenerator()
-    code_retriever = CodeRetriever(project_root=repo_path, ingestor=ingestor)
+    code_retriever = CodeRetriever(
+        project_root=repo_path, ingestor=ingestor, path_resolver=path_resolver
+    )
     file_reader = FileReader(project_root=repo_path)
     file_writer = FileWriter(project_root=repo_path)
-    file_editor = FileEditor(project_root=repo_path)
+    file_editor = FileEditor(project_root=repo_path, path_resolver=path_resolver)
     shell_commander = ShellCommander(
-        project_root=repo_path, timeout=settings.SHELL_COMMAND_TIMEOUT
+        project_root=repo_path,
+        timeout=settings.SHELL_COMMAND_TIMEOUT,
+        path_resolver=path_resolver,
     )
     directory_lister = DirectoryLister(project_root=repo_path)
     document_analyzer = DocumentAnalyzer(project_root=repo_path)

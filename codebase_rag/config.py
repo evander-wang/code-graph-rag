@@ -78,6 +78,7 @@ class AppConfig(BaseSettings):
     LOCAL_MODEL_ENDPOINT: AnyHttpUrl = AnyHttpUrl("http://localhost:11434/v1")
 
     TARGET_REPO_PATH: str = "."
+
     SHELL_COMMAND_TIMEOUT: int = 30
     SHELL_COMMAND_ALLOWLIST: frozenset[str] = frozenset(
         {
@@ -229,6 +230,141 @@ class AppConfig(BaseSettings):
         if resolved < 1:
             raise ValueError(ex.BATCH_SIZE_POSITIVE)
         return resolved
+
+    def get_project_mappings(self) -> dict[str, str]:
+        """Load project mappings with priority:
+        1. YAML configuration (.cgr_projects.yaml) if exists
+        2. Fallback to single project (TARGET_REPO_PATH)
+
+        Returns:
+            Dictionary mapping project names to paths
+
+        Examples:
+            >>> # YAML exists
+            >>> settings.get_project_mappings()
+            {'gateway': '/path/to/gateway', 'logic': '/path/to/logic'}
+
+            >>> # Single project mode
+            >>> settings.TARGET_REPO_PATH = "/path/to/project"
+            >>> settings.get_project_mappings()
+            {'project': '/path/to/project'}
+        """
+        # Priority 1: Try YAML configuration
+        yaml_path = Path(".cgr_projects.yaml")
+        if yaml_path.exists():
+            try:
+                logger.info(f"Loading configuration from YAML: {yaml_path}")
+                return self._load_yaml_config(yaml_path)
+            except (ValueError, OSError) as e:
+                logger.warning(
+                    f"YAML configuration failed: {e}. Falling back to single project mode."
+                )
+
+        # Priority 2: Single project fallback
+        logger.info("Using single project mode")
+        return self._get_single_project_mapping()
+
+    def _load_yaml_config(self, yaml_path: Path) -> dict[str, str]:
+        """Load project mappings from YAML file
+
+        Supports both simple dict and rich list formats
+
+        Args:
+            yaml_path: YAML configuration file path
+
+        Returns:
+            Dictionary mapping project names to paths
+
+        Raises:
+            ValueError: Invalid YAML format
+        """
+        try:
+            import yaml
+        except ImportError:
+            raise ValueError(
+                "PyYAML not installed, please run: uv add pyyaml"
+            ) from None
+
+        try:
+            with yaml_path.open(encoding="utf-8") as f:
+                config = yaml.safe_load(f) or {}
+
+            projects = config.get("projects", {})
+
+            # Auto-detect format
+            if isinstance(projects, dict):
+                # Simple format: {name: path}
+                return self._validate_yaml_mappings(projects)
+            elif isinstance(projects, list):
+                # Rich format: [{name, path, ...}]
+                return self._parse_rich_yaml_format(projects)
+            else:
+                raise ValueError(
+                    f"Invalid 'projects' format. Expected dict or list, got: {type(projects)}"
+                )
+        except yaml.YAMLError as e:
+            logger.error(f"YAML parsing failed {yaml_path}: {e}")
+            raise ValueError(f"Invalid YAML format: {e}") from e
+
+    def _validate_yaml_mappings(self, mappings: dict) -> dict[str, str]:
+        """Validate and normalize YAML mappings"""
+        validated = {}
+        for name, path in mappings.items():
+            name = str(name).strip()
+            path = str(path).strip()
+
+            if not name or not path:
+                logger.warning(f"Skipping invalid mapping: {name}:{path}")
+                continue
+
+            # Resolve to absolute path
+            resolved_path = Path(path).resolve()
+            if not resolved_path.exists():
+                logger.warning(
+                    f"Project path does not exist: {name} -> {resolved_path}"
+                )
+
+            validated[name] = str(resolved_path)
+
+        if not validated:
+            raise ValueError("No valid project mappings found in YAML")
+
+        logger.info(f"Loaded {len(validated)} projects from YAML")
+        return validated
+
+    def _parse_rich_yaml_format(self, projects: list) -> dict[str, str]:
+        """Parse rich YAML format (with metadata)"""
+        mappings = {}
+        for project in projects:
+            if not isinstance(project, dict):
+                logger.warning(f"Skipping invalid project entry: {project}")
+                continue
+
+            name = project.get("name")
+            path = project.get("path")
+
+            if not name or not path:
+                logger.warning(f"Project missing name or path: {project}")
+                continue
+
+            # Record metadata for future use
+            aliases = project.get("aliases", [])
+            description = project.get("description", "")
+
+            if aliases:
+                logger.debug(f"Project '{name}' aliases: {aliases}")
+            if description:
+                logger.debug(f"Project '{name}' description: {description}")
+
+            mappings[name] = str(Path(path).resolve())
+
+        return mappings
+
+    def _get_single_project_mapping(self) -> dict[str, str]:
+        """Get single project mapping from TARGET_REPO_PATH"""
+        default_path = Path(self.TARGET_REPO_PATH).resolve()
+        default_project = default_path.name
+        return {default_project: str(default_path)}
 
 
 settings = AppConfig()

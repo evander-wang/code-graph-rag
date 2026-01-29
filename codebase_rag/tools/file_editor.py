@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import difflib
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import diff_match_patch
 from loguru import logger
@@ -18,10 +19,34 @@ from ..schemas import EditResult
 from ..types_defs import FunctionMatch
 from . import tool_descriptions as td
 
+if TYPE_CHECKING:
+    from ..project_path_resolver import ProjectPathResolver
+
 
 class FileEditor:
-    def __init__(self, project_root: str = ".") -> None:
-        self.project_root = Path(project_root).resolve()
+    def __init__(
+        self,
+        project_root: str = ".",
+        path_resolver: ProjectPathResolver | None = None,
+    ) -> None:
+        """Initialize FileEditor
+
+        Args:
+            project_root: Project root path (backward compatibility parameter)
+            path_resolver: Project path resolver (optional)
+        """
+        if path_resolver:
+            self.path_resolver = path_resolver
+            self.project_root = path_resolver.list_projects()[0]  # Use first project
+        else:
+            self.project_root = Path(project_root).resolve()
+            # Create single-project resolver for compatibility
+            from ..project_path_resolver import ProjectPathResolver
+
+            self.path_resolver = ProjectPathResolver(
+                {Path(project_root).name: project_root}
+            )
+
         self.dmp = diff_match_patch.diff_match_patch()
         self.parsers, _ = load_parsers()
         logger.info(ls.FILE_EDITOR_INIT.format(root=self.project_root))

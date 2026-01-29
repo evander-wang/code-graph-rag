@@ -1054,7 +1054,7 @@ wheels = [
 
 [[package]]
 name = "graph-code"
-version = "0.0.36"
+version = "0.0.39"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -1068,6 +1068,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pymgclient" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
     { name = "rich" },
     { name = "toml" },
     { name = "tree-sitter" },
@@ -1132,6 +1133,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.0.0" },
     { name = "pytest-xdist", marker = "extra == 'test'", specifier = ">=3.8.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
+    { name = "pyyaml", specifier = ">=6.0.0" },
     { name = "qdrant-client", marker = "extra == 'semantic'", specifier = ">=1.9.0" },
     { name = "rich", specifier = ">=13.7.1" },
     { name = "testcontainers", marker = "extra == 'test'", specifier = ">=4.9.0" },

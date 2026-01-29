@@ -11,6 +11,7 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "pymgclient>=1.4.0",
     "python-dotenv>=1.1.0",
+    "pyyaml>=6.0.0",
     "toml>=0.10.2",
     "tree-sitter-python>=0.23.6",
     "tree-sitter==0.25.0",
