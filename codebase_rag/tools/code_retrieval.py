@@ -82,14 +82,16 @@ class CodeRetriever:
                 )
 
             try:
-                project_root = self.path_resolver.resolve_path_from_fqn(qualified_name)
+                resolved_project_root = self.path_resolver.resolve_path_from_fqn(
+                    qualified_name
+                )
             except KeyError:
                 logger.debug(
                     f"[CodeRetriever] Project not found in resolver for {qualified_name}, using default project_root"
                 )
-                project_root = self.project_root
+                resolved_project_root = self.project_root
 
-            full_path = project_root / file_path_str
+            full_path = resolved_project_root / file_path_str
 
             logger.debug(
                 f"[CodeRetriever] Resolved path for {qualified_name}: {full_path}"
