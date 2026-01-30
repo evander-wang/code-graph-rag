@@ -23,14 +23,19 @@ ANALYZE_DOCUMENT = (
 )
 
 CODEBASE_QUERY = (
-    "Query the codebase knowledge graph using natural language questions. "
-    "Ask in plain English about classes, functions, methods, dependencies, or code structure. "
-    "Examples: 'Find all functions that call each other', "
-    "'What classes are in the user module', "
-    "'Show me functions with the longest call chains'."
+    "PRIMARY TOOL for STRUCTURAL ANALYSIS of code relationships. "
+    "Use for: 'show me call chains', 'what functions call X', 'list all classes in module', "
+    "'find dependencies', 'show inheritance hierarchy', 'decorators', 'function relationships'. "
+    "Complements semantic_search - use AFTER finding relevant code semantically. "
+    "Ask in plain English about classes, functions, dependencies, or code structure."
 )
 
-DIRECTORY_LISTER = "Lists the contents of a directory to explore the codebase."
+DIRECTORY_LISTER = (
+    "FALLBACK TOOL for directory exploration. "
+    "ONLY use when you need to see directory structure itself. "
+    "DO NOT use for finding code functionality - use semantic_search instead. "
+    "Examples: 'show files in src/', 'list directory contents', 'what files are in tests/'."
+)
 
 FILE_WRITER = (
     "Creates a new file with content. IMPORTANT: Check file existence first! "
@@ -49,8 +54,13 @@ CODE_RETRIEVAL = (
 )
 
 SEMANTIC_SEARCH = (
-    "Performs a semantic search for functions based on a natural language query "
-    "describing their purpose, returning a list of potential matches with similarity scores."
+    "PRIMARY TOOL for finding code by INTENT and MEANING. "
+    "Use this FIRST for: 'find HTTP endpoints', 'where is authentication done', "
+    "'how does error handling work', 'what database operations exist', 'API routes'. "
+    "Searches code semantics using embeddings - understands PURPOSE not just keywords. "
+    "Returns ranked matches with similarity scores. "
+    "Examples: 'HTTP endpoints', 'database queries', 'validation logic', 'entry points', "
+    "'authentication', 'error handling', 'API handlers'."
 )
 
 GET_FUNCTION_SOURCE = (
@@ -59,8 +69,10 @@ GET_FUNCTION_SOURCE = (
 )
 
 FILE_READER = (
-    "Reads the content of text-based files. "
-    "For documents like PDFs or images, use the 'analyze_document' tool instead."
+    "FALLBACK TOOL for reading file contents. "
+    "Use AFTER semantic_search or query_codebase_knowledge_graph identifies specific files. "
+    "NOT for discovery - only for examining known files. "
+    "For documents like PDFs or images, use 'analyze_document' tool instead."
 )
 
 FILE_EDITOR = (

@@ -1128,6 +1128,14 @@ MSG_SEMANTIC_RESULT_FOOTER = "\n\nUse the qualified names above with other tools
 SEMANTIC_BATCH_SIZE = 100
 SEMANTIC_TYPE_UNKNOWN = "Unknown"
 
+# (H) Tool selection guidance messages
+MSG_TOOL_SELECTION_SEMANTIC_FIRST = (
+    "Searching semantically for code related to: '{query}'"
+)
+MSG_TOOL_SELECTION_GRAPH_SECOND = "Exploring structural relationships for: '{query}'"
+MSG_TOOL_SELECTION_READ_FINAL = "Reading source code from: '{file_path}'"
+MSG_TOOL_SELECTION_HINT = "TIP: For finding code functionality, semantic_search is more effective than directory listing"
+
 # (H) Document analyzer constants
 MSG_DOC_NO_CANDIDATES = "No valid text found in response candidates."
 MSG_DOC_NO_CONTENT = "No text content received from the API."

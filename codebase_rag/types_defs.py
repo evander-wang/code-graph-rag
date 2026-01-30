@@ -286,6 +286,7 @@ class ToolNames(NamedTuple):
     create_file: str
     edit_file: str
     shell_command: str
+    list_directory: str
 
 
 class ConfirmationToolNames(NamedTuple):

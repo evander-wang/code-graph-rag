@@ -701,14 +701,14 @@ The agent has access to a suite of tools to understand and interact with the cod
 <!-- SECTION:agentic_tools -->
 | Tool | Description |
 |----|-----------|
-| `query_graph` | Query the codebase knowledge graph using natural language questions. Ask in plain English about classes, functions, methods, dependencies, or code structure. Examples: 'Find all functions that call each other', 'What classes are in the user module', 'Show me functions with the longest call chains'. |
-| `read_file` | Reads the content of text-based files. For documents like PDFs or images, use the 'analyze_document' tool instead. |
+| `query_graph` | PRIMARY TOOL for STRUCTURAL ANALYSIS of code relationships. Use for: 'show me call chains', 'what functions call X', 'list all classes in module', 'find dependencies', 'show inheritance hierarchy', 'decorators', 'function relationships'. Complements semantic_search - use AFTER finding relevant code semantically. Ask in plain English about classes, functions, dependencies, or code structure. |
+| `read_file` | FALLBACK TOOL for reading file contents. Use AFTER semantic_search or query_codebase_knowledge_graph identifies specific files. NOT for discovery - only for examining known files. For documents like PDFs or images, use 'analyze_document' tool instead. |
 | `create_file` | Creates a new file with content. IMPORTANT: Check file existence first! Overwrites completely WITHOUT showing diff. Use only for new files, not existing file modifications. |
 | `replace_code` | Surgically replaces specific code blocks in files. Requires exact target code and replacement. Only modifies the specified block, leaving rest of file unchanged. True surgical patching. |
-| `list_directory` | Lists the contents of a directory to explore the codebase. |
+| `list_directory` | FALLBACK TOOL for directory exploration. ONLY use when you need to see directory structure itself. DO NOT use for finding code functionality - use semantic_search instead. Examples: 'show files in src/', 'list directory contents', 'what files are in tests/'. |
 | `analyze_document` | Analyzes documents (PDFs, images) to answer questions about their content. |
 | `execute_shell` | Executes shell commands from allowlist. Read-only commands run without approval; write operations require user confirmation. |
-| `semantic_search` | Performs a semantic search for functions based on a natural language query describing their purpose, returning a list of potential matches with similarity scores. |
+| `semantic_search` | PRIMARY TOOL for finding code by INTENT and MEANING. Use this FIRST for: 'find HTTP endpoints', 'where is authentication done', 'how does error handling work', 'what database operations exist', 'API routes'. Searches code semantics using embeddings - understands PURPOSE not just keywords. Returns ranked matches with similarity scores. Examples: 'HTTP endpoints', 'database queries', 'validation logic', 'entry points', 'authentication', 'error handling', 'API handlers'. |
 | `get_function_source` | Retrieves the source code for a specific function or method using its internal node ID, typically obtained from a semantic search result. |
 | `get_code_snippet` | Retrieves the source code for a specific function, class, or method using its full qualified name. |
 <!-- /SECTION:agentic_tools -->
